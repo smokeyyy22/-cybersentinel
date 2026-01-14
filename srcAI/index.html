@@ -1,0 +1,822 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>CyberSentinel</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: 'Courier New', monospace;
+      background: #000;
+      color: #0f0;
+      overflow-x: hidden;
+    }
+
+    /* Animated grid background */
+    body::before {
+      content: '';
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: 
+        linear-gradient(0deg, transparent 24%, rgba(0, 255, 0, 0.05) 25%, rgba(0, 255, 0, 0.05) 26%, transparent 27%, transparent 74%, rgba(0, 255, 0, 0.05) 75%, rgba(0, 255, 0, 0.05) 76%, transparent 77%, transparent),
+        linear-gradient(90deg, transparent 24%, rgba(0, 255, 0, 0.05) 25%, rgba(0, 255, 0, 0.05) 26%, transparent 27%, transparent 74%, rgba(0, 255, 0, 0.05) 75%, rgba(0, 255, 0, 0.05) 76%, transparent 77%, transparent);
+      background-size: 50px 50px;
+      animation: gridScroll 20s linear infinite;
+      z-index: 0;
+      pointer-events: none;
+    }
+
+    @keyframes gridScroll {
+      0% { transform: translateY(0); }
+      100% { transform: translateY(50px); }
+    }
+
+    /* Glowing orbs */
+    .glow-orb {
+      position: fixed;
+      border-radius: 50%;
+      background: radial-gradient(circle, rgba(0, 255, 0, 0.4), transparent);
+      filter: blur(60px);
+      pointer-events: none;
+      z-index: 0;
+      animation: float 8s ease-in-out infinite;
+    }
+
+    .glow-orb-1 {
+      width: 300px;
+      height: 300px;
+      top: 10%;
+      left: 10%;
+      animation-delay: 0s;
+    }
+
+    .glow-orb-2 {
+      width: 400px;
+      height: 400px;
+      top: 60%;
+      right: 5%;
+      animation-delay: 2s;
+    }
+
+    .glow-orb-3 {
+      width: 250px;
+      height: 250px;
+      bottom: 10%;
+      left: 50%;
+      animation-delay: 4s;
+    }
+
+    @keyframes float {
+      0%, 100% { transform: translate(0, 0); }
+      50% { transform: translate(30px, 30px); }
+    }
+
+    .App {
+      position: relative;
+      z-index: 1;
+    }
+
+    .header {
+      background: linear-gradient(180deg, rgba(0, 20, 0, 0.9), rgba(0, 0, 0, 0.8));
+      border-bottom: 2px solid #0f0;
+      box-shadow: 0 0 20px rgba(0, 255, 0, 0.3);
+      padding: 2rem 0;
+      position: relative;
+    }
+
+    .header::after {
+      content: '';
+      position: absolute;
+      bottom: -2px;
+      left: 0;
+      width: 100%;
+      height: 2px;
+      background: linear-gradient(90deg, transparent, #0f0, transparent);
+      animation: scanline 3s linear infinite;
+    }
+
+    @keyframes scanline {
+      0% { transform: translateX(-100%); }
+      100% { transform: translateX(100%); }
+    }
+
+    .header-content {
+      text-align: center;
+    }
+
+    .header-content h1 {
+      font-size: 3rem;
+      text-shadow: 
+        0 0 10px #0f0,
+        0 0 20px #0f0,
+        0 0 30px #0f0,
+        0 0 40px #0f0;
+      animation: glitch 3s infinite;
+      letter-spacing: 4px;
+    }
+
+    @keyframes glitch {
+      0%, 90%, 100% { transform: translate(0); }
+      92% { transform: translate(-2px, 2px); }
+      94% { transform: translate(2px, -2px); }
+      96% { transform: translate(-2px, -2px); }
+      98% { transform: translate(2px, 2px); }
+    }
+
+    .subtitle {
+      font-size: 1.1rem;
+      color: #0d0;
+      margin-top: 0.5rem;
+      text-transform: uppercase;
+      letter-spacing: 3px;
+      opacity: 0.8;
+    }
+
+    .health-indicator {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      margin-top: 1rem;
+      padding: 0.5rem 1.5rem;
+      background: rgba(0, 255, 0, 0.1);
+      border: 1px solid #0f0;
+      border-radius: 20px;
+      font-size: 0.9rem;
+      box-shadow: 0 0 10px rgba(0, 255, 0, 0.3);
+    }
+
+    .status-dot {
+      width: 12px;
+      height: 12px;
+      border-radius: 50%;
+      animation: pulse 2s infinite;
+    }
+
+    .status-dot.online {
+      background: #0f0;
+      box-shadow: 0 0 10px #0f0;
+    }
+
+    .status-dot.offline {
+      background: #f00;
+      box-shadow: 0 0 10px #f00;
+    }
+
+    @keyframes pulse {
+      0%, 100% { opacity: 1; transform: scale(1); }
+      50% { opacity: 0.6; transform: scale(1.2); }
+    }
+
+    .page {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 0 1rem;
+    }
+
+    .main-content {
+      padding: 2rem 0;
+    }
+
+    .section {
+      margin: 2rem 0;
+      background: rgba(0, 20, 0, 0.5);
+      border: 1px solid #0f0;
+      border-radius: 10px;
+      padding: 2rem;
+      box-shadow: 0 0 20px rgba(0, 255, 0, 0.2);
+      backdrop-filter: blur(10px);
+    }
+
+    .section h2 {
+      font-size: 1.8rem;
+      margin-bottom: 1.5rem;
+      text-shadow: 0 0 10px #0f0;
+      position: relative;
+      display: inline-block;
+    }
+
+    .section h2::after {
+      content: '';
+      position: absolute;
+      bottom: -5px;
+      left: 0;
+      width: 100%;
+      height: 2px;
+      background: #0f0;
+      box-shadow: 0 0 5px #0f0;
+    }
+
+    .scenario-input {
+      width: 100%;
+      background: rgba(0, 0, 0, 0.8);
+      border: 2px solid #0f0;
+      border-radius: 5px;
+      padding: 1rem;
+      color: #0f0;
+      font-family: 'Courier New', monospace;
+      font-size: 1rem;
+      resize: vertical;
+      transition: all 0.3s;
+      box-shadow: inset 0 0 10px rgba(0, 255, 0, 0.2);
+    }
+
+    .scenario-input:focus {
+      outline: none;
+      box-shadow: 
+        inset 0 0 10px rgba(0, 255, 0, 0.3),
+        0 0 20px rgba(0, 255, 0, 0.4);
+      border-color: #0ff;
+    }
+
+    .scenario-input::placeholder {
+      color: #0a0;
+    }
+
+    .example-scenarios {
+      margin: 1.5rem 0;
+      display: flex;
+      gap: 1rem;
+      flex-wrap: wrap;
+      align-items: center;
+    }
+
+    .example-label {
+      color: #0d0;
+      font-size: 0.9rem;
+      text-transform: uppercase;
+      letter-spacing: 2px;
+    }
+
+    .example-btn {
+      background: rgba(0, 50, 0, 0.8);
+      border: 1px solid #0f0;
+      color: #0f0;
+      padding: 0.5rem 1rem;
+      border-radius: 5px;
+      cursor: pointer;
+      font-family: 'Courier New', monospace;
+      font-size: 0.9rem;
+      transition: all 0.3s;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .example-btn::before {
+      content: '';
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      width: 0;
+      height: 0;
+      border-radius: 50%;
+      background: rgba(0, 255, 0, 0.3);
+      transform: translate(-50%, -50%);
+      transition: width 0.4s, height 0.4s;
+    }
+
+    .example-btn:hover::before {
+      width: 300px;
+      height: 300px;
+    }
+
+    .example-btn:hover {
+      background: rgba(0, 100, 0, 0.9);
+      box-shadow: 0 0 15px rgba(0, 255, 0, 0.5);
+      transform: translateY(-2px);
+    }
+
+    .example-btn span {
+      position: relative;
+      z-index: 1;
+    }
+
+    .analyze-btn {
+      width: 100%;
+      background: linear-gradient(135deg, rgba(0, 80, 0, 0.9), rgba(0, 120, 0, 0.9));
+      border: 2px solid #0f0;
+      color: #0f0;
+      padding: 1rem 2rem;
+      font-size: 1.2rem;
+      font-weight: bold;
+      border-radius: 5px;
+      cursor: pointer;
+      font-family: 'Courier New', monospace;
+      text-transform: uppercase;
+      letter-spacing: 2px;
+      transition: all 0.3s;
+      position: relative;
+      overflow: hidden;
+      margin-top: 1rem;
+      box-shadow: 0 0 20px rgba(0, 255, 0, 0.3);
+    }
+
+    .analyze-btn:hover:not(:disabled) {
+      background: linear-gradient(135deg, rgba(0, 120, 0, 0.9), rgba(0, 180, 0, 0.9));
+      box-shadow: 0 0 30px rgba(0, 255, 0, 0.6);
+      transform: scale(1.02);
+    }
+
+    .analyze-btn:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+
+    .spinner {
+      display: inline-block;
+      width: 20px;
+      height: 20px;
+      border: 3px solid rgba(0, 255, 0, 0.3);
+      border-top-color: #0f0;
+      border-radius: 50%;
+      animation: spin 1s linear infinite;
+      margin-left: 0.5rem;
+      vertical-align: middle;
+    }
+
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+
+    .error-message {
+      background: rgba(255, 0, 0, 0.2);
+      border: 1px solid #f00;
+      color: #f00;
+      padding: 1rem;
+      border-radius: 5px;
+      margin-top: 1rem;
+      box-shadow: 0 0 10px rgba(255, 0, 0, 0.3);
+    }
+
+    .results-section {
+      animation: fadeIn 0.5s;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(20px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .results-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 1.5rem;
+    }
+
+    .download-btn {
+      background: rgba(0, 50, 0, 0.8);
+      border: 1px solid #0f0;
+      color: #0f0;
+      padding: 0.7rem 1.5rem;
+      border-radius: 5px;
+      cursor: pointer;
+      font-family: 'Courier New', monospace;
+      font-size: 0.9rem;
+      transition: all 0.3s;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+    }
+
+    .download-btn:hover:not(:disabled) {
+      background: rgba(0, 100, 0, 0.9);
+      box-shadow: 0 0 15px rgba(0, 255, 0, 0.5);
+    }
+
+    .download-btn:disabled {
+      opacity: 0.3;
+      cursor: not-allowed;
+    }
+
+    .analysis-card {
+      background: rgba(0, 10, 0, 0.8);
+      border: 1px solid #0f0;
+      border-radius: 10px;
+      padding: 2rem;
+      box-shadow: 0 0 30px rgba(0, 255, 0, 0.2);
+    }
+
+    .card-header {
+      border-bottom: 1px solid #0f0;
+      padding-bottom: 1rem;
+      margin-bottom: 1.5rem;
+    }
+
+    .case-info {
+      display: flex;
+      gap: 2rem;
+      flex-wrap: wrap;
+    }
+
+    .case-id, .timestamp {
+      font-size: 0.9rem;
+      color: #0d0;
+      font-family: 'Courier New', monospace;
+    }
+
+    .analysis-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 1.5rem;
+      margin-bottom: 2rem;
+    }
+
+    .info-box {
+      background: rgba(0, 20, 0, 0.6);
+      border: 1px solid #0a0;
+      border-radius: 8px;
+      padding: 1rem;
+      box-shadow: inset 0 0 10px rgba(0, 255, 0, 0.1);
+    }
+
+    .info-box label {
+      display: block;
+      font-size: 0.8rem;
+      color: #0a0;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      margin-bottom: 0.5rem;
+    }
+
+    .threat-type, .token-count {
+      font-size: 1.1rem;
+      color: #0f0;
+      font-weight: bold;
+      text-shadow: 0 0 5px #0f0;
+    }
+
+    .severity-badge {
+      display: inline-block;
+      padding: 0.5rem 1rem;
+      border-radius: 5px;
+      font-weight: bold;
+      font-size: 0.9rem;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+    }
+
+    .severity-low {
+      background: rgba(0, 255, 0, 0.2);
+      border: 1px solid #0f0;
+      color: #0f0;
+      box-shadow: 0 0 10px rgba(0, 255, 0, 0.3);
+    }
+
+    .severity-medium {
+      background: rgba(255, 255, 0, 0.2);
+      border: 1px solid #ff0;
+      color: #ff0;
+      box-shadow: 0 0 10px rgba(255, 255, 0, 0.3);
+    }
+
+    .severity-high {
+      background: rgba(255, 0, 0, 0.2);
+      border: 1px solid #f00;
+      color: #f00;
+      box-shadow: 0 0 10px rgba(255, 0, 0, 0.3);
+    }
+
+    .severity-unknown {
+      background: rgba(100, 100, 100, 0.2);
+      border: 1px solid #666;
+      color: #666;
+    }
+
+    .analysis-content, .recommendations, .sources {
+      margin-top: 2rem;
+    }
+
+    .analysis-content h3, .recommendations h3, .sources h3 {
+      font-size: 1.3rem;
+      color: #0f0;
+      margin-bottom: 1rem;
+      text-shadow: 0 0 8px #0f0;
+      position: relative;
+      padding-left: 1rem;
+    }
+
+    .analysis-content h3::before, .recommendations h3::before, .sources h3::before {
+      content: '▶';
+      position: absolute;
+      left: 0;
+      color: #0f0;
+      animation: blink 1.5s infinite;
+    }
+
+    @keyframes blink {
+      0%, 50%, 100% { opacity: 1; }
+      25%, 75% { opacity: 0.3; }
+    }
+
+    .analysis-text {
+      color: #0d0;
+      line-height: 1.8;
+      font-size: 1rem;
+      background: rgba(0, 20, 0, 0.4);
+      padding: 1rem;
+      border-left: 3px solid #0f0;
+      border-radius: 5px;
+    }
+
+    .rec-list {
+      list-style: none;
+      padding: 0;
+    }
+
+    .rec-list li {
+      background: rgba(0, 20, 0, 0.4);
+      border: 1px solid #0a0;
+      border-left: 3px solid #0f0;
+      padding: 1rem;
+      margin-bottom: 0.8rem;
+      border-radius: 5px;
+      display: flex;
+      gap: 1rem;
+      transition: all 0.3s;
+      align-items: flex-start;
+    }
+
+    .rec-list li:hover {
+      background: rgba(0, 40, 0, 0.6);
+      border-left-color: #0ff;
+      box-shadow: 0 0 15px rgba(0, 255, 0, 0.2);
+      transform: translateX(5px);
+    }
+
+    .rec-number {
+      background: #0f0;
+      color: #000;
+      width: 30px;
+      height: 30px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: bold;
+      flex-shrink: 0;
+      box-shadow: 0 0 10px #0f0;
+    }
+
+    /* Robot eye effect */
+    .robot-eye {
+      position: fixed;
+      width: 20px;
+      height: 20px;
+      background: #0f0;
+      border-radius: 50%;
+      box-shadow: 0 0 20px #0f0, 0 0 40px #0f0;
+      pointer-events: none;
+      z-index: 9999;
+      transition: transform 0.1s;
+      opacity: 0;
+    }
+
+    .robot-eye.active {
+      opacity: 1;
+    }
+
+    /* Scanning effect */
+    @keyframes scan {
+      0%, 100% { transform: translateY(0); opacity: 0.8; }
+      50% { transform: translateY(10px); opacity: 0.4; }
+    }
+  </style>
+</head>
+<body>
+  <div class="glow-orb glow-orb-1"></div>
+  <div class="glow-orb glow-orb-2"></div>
+  <div class="glow-orb glow-orb-3"></div>
+  
+  <div class="robot-eye" id="robotEye"></div>
+
+  <div class="App">
+    <header class="header">
+      <div class="header-content page">
+        <h1>⚡ CYBERSENTINEL ⚡</h1>
+        <p class="subtitle">◈ AI-POWERED THREAT ANALYSIS SYSTEM ◈</p>
+        <div class="health-indicator" id="healthIndicator">
+          <span class="status-dot offline" id="statusDot"></span>
+          <span id="statusText">INITIALIZING SYSTEM...</span>
+        </div>
+      </div>
+    </header>
+
+    <main class="main-content page">
+      <section class="input-section section">
+        <h2>▸ THREAT SCENARIO INPUT</h2>
+        <textarea id="scenarioInput" class="scenario-input" rows="6" placeholder=">> DESCRIBE SECURITY INCIDENT OR THREAT SCENARIO..."></textarea>
+
+        <div class="example-scenarios">
+          <div class="example-label">⟐ PRESETS:</div>
+          <button class="example-btn" data-text="Employee received an email claiming to be from IT support requesting immediate password verification after a supposed breach.">PHISHING</button>
+          <button class="example-btn" data-text="Multiple workstations show unusual CPU spikes and outbound connections to unknown IPs.">MALWARE</button>
+          <button class="example-btn" data-text="The public site is receiving tens of thousands of requests per second from many regions, causing slowdown.">DDoS</button>
+        </div>
+
+        <button id="analyzeBtn" class="analyze-btn">
+          <span id="analyzeLabel">► INITIATE ANALYSIS</span>
+          <div id="spinner" class="spinner" style="display:none"></div>
+        </button>
+
+        <div id="errorMessage" class="error-message" style="display:none"></div>
+      </section>
+
+      <section id="resultsSection" class="results-section section" style="display:none">
+        <div class="results-header">
+          <h2>▸ ANALYSIS REPORT</h2>
+          <button id="downloadBtn" class="download-btn" disabled>↓ EXPORT PDF</button>
+        </div>
+
+        <div class="analysis-card">
+          <div class="card-header">
+            <div class="case-info">
+              <div class="case-id" id="caseId">CASE: -</div>
+              <div class="timestamp" id="timestamp">TIMESTAMP: -</div>
+            </div>
+          </div>
+
+          <div class="analysis-grid">
+            <div class="info-box">
+              <label>◈ THREAT TYPE</label>
+              <div class="threat-type" id="threatType">-</div>
+            </div>
+            <div class="info-box">
+              <label>◈ SEVERITY LEVEL</label>
+              <div id="severity" class="severity-badge severity-unknown">UNKNOWN</div>
+            </div>
+            <div class="info-box">
+              <label>◈ TOKEN USAGE</label>
+              <div class="token-count" id="tokenUsage">-</div>
+            </div>
+          </div>
+
+          <div class="analysis-content">
+            <h3>SCENARIO</h3>
+            <p id="scenarioText" class="analysis-text">-</p>
+          </div>
+
+          <div class="analysis-content">
+            <h3>AI ANALYSIS</h3>
+            <p id="analysisText" class="analysis-text">-</p>
+          </div>
+
+          <div class="recommendations">
+            <h3>RECOMMENDED ACTIONS</h3>
+            <ul id="recList" class="rec-list"></ul>
+          </div>
+
+          <div class="sources">
+            <h3>CONTEXT SOURCES</h3>
+            <p id="sourcesText" class="analysis-text">None</p>
+          </div>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <script>
+    const apiBase = 'http://localhost:8000/api';
+    const statusDot = document.getElementById('statusDot');
+    const statusText = document.getElementById('statusText');
+    const scenarioInput = document.getElementById('scenarioInput');
+    const analyzeBtn = document.getElementById('analyzeBtn');
+    const analyzeLabel = document.getElementById('analyzeLabel');
+    const spinner = document.getElementById('spinner');
+    const errorMessage = document.getElementById('errorMessage');
+    const resultsSection = document.getElementById('resultsSection');
+    const downloadBtn = document.getElementById('downloadBtn');
+
+    const caseIdEl = document.getElementById('caseId');
+    const timestampEl = document.getElementById('timestamp');
+    const threatTypeEl = document.getElementById('threatType');
+    const severityEl = document.getElementById('severity');
+    const tokenUsageEl = document.getElementById('tokenUsage');
+    const scenarioTextEl = document.getElementById('scenarioText');
+    const analysisTextEl = document.getElementById('analysisText');
+    const recListEl = document.getElementById('recList');
+    const sourcesTextEl = document.getElementById('sourcesText');
+    const robotEye = document.getElementById('robotEye');
+
+    let latestAnalysis = null;
+
+    // Robot eye follows cursor
+    document.addEventListener('mousemove', (e) => {
+      robotEye.classList.add('active');
+      robotEye.style.left = e.clientX + 'px';
+      robotEye.style.top = e.clientY + 'px';
+    });
+
+    // Typing effect for inputs
+    let typingTimer;
+    scenarioInput.addEventListener('input', () => {
+      clearTimeout(typingTimer);
+      scenarioInput.style.boxShadow = 'inset 0 0 15px rgba(0, 255, 0, 0.4), 0 0 25px rgba(0, 255, 0, 0.5)';
+      typingTimer = setTimeout(() => {
+        scenarioInput.style.boxShadow = 'inset 0 0 10px rgba(0, 255, 0, 0.2)';
+      }, 500);
+    });
+
+    function setLoading(isLoading) {
+      analyzeBtn.disabled = isLoading;
+      spinner.style.display = isLoading ? 'inline-block' : 'none';
+      analyzeLabel.textContent = isLoading ? '⟳ ANALYZING...' : '► INITIATE ANALYSIS';
+    }
+
+    function setStatus(state, detail = '') {
+      statusDot.classList.remove('online', 'offline');
+      statusDot.classList.add(state === 'online' ? 'online' : 'offline');
+      statusText.textContent = detail || (state === 'online' ? 'SYSTEM ONLINE' : 'SYSTEM OFFLINE');
+    }
+
+    async function fetchHealth() {
+      try {
+        const res = await fetch(`${apiBase}/health`);
+        const data = await res.json();
+        const healthy = data.status === 'healthy' || data.status === 'degraded';
+        const vector = data.vector_db || 'UNKNOWN';
+        setStatus(healthy ? 'online' : 'offline', `API: ${data.ollama || 'UNKNOWN'} | VECTOR DB: ${vector}`);
+      } catch (err) {
+        setStatus('offline', 'CONNECTION FAILED');
+      }
+    }
+
+    function severityClass(level) {
+      const map = { low: 'severity-low', medium: 'severity-medium', high: 'severity-high' };
+      return map[level.toLowerCase()] || 'severity-unknown';
+    }
+
+    function renderAnalysis(analysis) {
+      latestAnalysis = analysis;
+      downloadBtn.disabled = false;
+      resultsSection.style.display = 'block';
+      resultsSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
+
+      caseIdEl.textContent = `CASE: ${analysis.case_id}`;
+      timestampEl.textContent = `TIMESTAMP: ${analysis.timestamp}`;
+      threatTypeEl.textContent = analysis.threat_type || 'UNKNOWN';
+
+      severityEl.textContent = (analysis.severity || 'UNKNOWN').toUpperCase();
+      severityEl.className = 'severity-badge ' + severityClass(analysis.severity || 'unknown');
+
+      tokenUsageEl.textContent = analysis.token_usage || 0;
+      scenarioTextEl.textContent = analysis.scenario || '';
+      analysisTextEl.textContent = analysis.analysis || '';
+
+      recListEl.innerHTML = '';
+      (analysis.recommendations || []).forEach((rec, idx) => {
+        const li = document.createElement('li');
+        li.innerHTML = `<span class="rec-number">${idx + 1}</span><span>${rec}</span>`;
+        recListEl.appendChild(li);
+      });
+
+      const sources = analysis.context_sources || [];
+      sourcesTextEl.textContent = sources.length ? sources.join(', ') : 'NO SPECIFIC SOURCES CITED';
+    }
+
+    async function analyze() {
+      const scenario = scenarioInput.value.trim();
+      if (!scenario) {
+        errorMessage.textContent = '⚠ ERROR: SCENARIO INPUT REQUIRED';
+        errorMessage.style.display = 'block';
+        setTimeout(() => { errorMessage.style.display = 'none'; }, 3000);
+        return;
+      }
+      errorMessage.style.display = 'none';
+      setLoading(true);
+      try {
+        const res = await fetch(`${apiBase}/analyze`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ scenario })
+        });
+        if (!res.ok) {
+          throw new Error(`API ERROR ${res.status}`);
+        }
+        const data = await res.json();
+        renderAnalysis(data);
+      } catch (err) {
+        errorMessage.textContent = `⚠ ${err.message || 'ANALYSIS FAILED'}`;
+        errorMessage.style.display = 'block';
+      } finally {
+        setLoading(false);
+      }
+    }
+
+    async function downloadPdf() {
+      if (!latestAnalysis) return;
+      try {
+        const res = await fetch(`${apiBase}/generate-report`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(latestAnalysis)
+        });
+        if (!res.ok) throw new Error('DOWNLOAD FAILED');
+        const blob = await res.blob

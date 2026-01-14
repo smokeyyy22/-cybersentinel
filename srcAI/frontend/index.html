@@ -1,0 +1,492 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>CyberSentinel - Threat Analysis System</title>
+  <link rel="stylesheet" href="cybersentinel_enhanced.css" />
+</head>
+<body>
+  <canvas id="matrixCanvas"></canvas>
+  <div class="loading-bar" id="loadingBar"></div>
+  
+  <!-- Hexagon pattern overlay -->
+  <div class="hex-pattern"></div>
+  
+  <!-- Circuit lines -->
+  <div class="circuit-lines">
+    <div class="circuit-line h" style="top: 15%;"></div>
+    <div class="circuit-line h" style="top: 45%;"></div>
+    <div class="circuit-line h" style="top: 75%;"></div>
+    <div class="circuit-line v" style="left: 20%;"></div>
+    <div class="circuit-line v" style="left: 60%;"></div>
+    <div class="circuit-line v" style="right: 15%;"></div>
+  </div>
+  
+  <!-- Animated HUD elements -->
+  <div class="hud-corners">
+    <div class="corner top-left"></div>
+    <div class="corner top-right"></div>
+    <div class="corner bottom-left"></div>
+    <div class="corner bottom-right"></div>
+  </div>
+  
+  <!-- Scanning line effect -->
+  <div class="scan-line"></div>
+
+  <!-- Scanning radar -->
+  <div class="radar-container">
+    <div class="radar">
+      <div class="radar-sweep"></div>
+      <div class="radar-dot"></div>
+      <div class="radar-dot"></div>
+      <div class="radar-dot"></div>
+    </div>
+  </div>
+
+  <!-- Tech circles decoration -->
+  <div class="tech-circle tech-circle-1">
+    <div class="circle-segment"></div>
+    <div class="circle-segment"></div>
+    <div class="circle-segment"></div>
+    <div class="circle-segment"></div>
+  </div>
+
+  <div class="App">
+    <header class="header">
+      <div class="header-content page">
+        <div class="title-container">
+          <div class="title-bracket left">[</div>
+          <h1>CYBERSENTINEL</h1>
+          <div class="title-bracket right">]</div>
+        </div>
+        <p class="subtitle">// NEURAL THREAT DETECTION SYSTEM v2.47 //</p>
+        <div class="health-indicator" id="healthIndicator">
+          <div class="status-bar">
+            <div class="status-fill" id="statusFill"></div>
+          </div>
+          <span class="status-dot" id="statusDot"></span>
+          <span id="statusText">INITIALIZING SYSTEMS...</span>
+        </div>
+      </div>
+    </header>
+
+    <main class="main-content page">
+      <!-- Data visualization bars -->
+      <div class="data-bars">
+        <div class="data-bar" style="--height: 60%; --delay: 0s;"></div>
+        <div class="data-bar" style="--height: 80%; --delay: 0.1s;"></div>
+        <div class="data-bar" style="--height: 45%; --delay: 0.2s;"></div>
+        <div class="data-bar" style="--height: 95%; --delay: 0.3s;"></div>
+        <div class="data-bar" style="--height: 70%; --delay: 0.4s;"></div>
+        <div class="data-bar" style="--height: 55%; --delay: 0.5s;"></div>
+        <div class="data-bar" style="--height: 85%; --delay: 0.6s;"></div>
+        <div class="data-bar" style="--height: 40%; --delay: 0.7s;"></div>
+      </div>
+
+      <section class="input-section section">
+        <div class="section-header">
+          <h2><span class="bracket">&gt;</span> THREAT SCENARIO INPUT</h2>
+          <div class="header-line"></div>
+        </div>
+        
+        <div class="input-wrapper">
+          <textarea id="scenarioInput" class="scenario-input" rows="6" placeholder="// DESCRIBE SECURITY INCIDENT OR THREAT SCENARIO...&#10;// AWAITING INPUT..."></textarea>
+          <div class="input-border-effect"></div>
+        </div>
+
+        <div class="example-scenarios">
+          <div class="example-label">QUICK DEPLOY:</div>
+          <button class="example-btn" data-text="Employee received an email claiming to be from IT support requesting immediate password verification after a supposed breach.">
+            <span class="btn-icon">⚡</span>
+            <span>PHISHING ATTACK</span>
+          </button>
+          <button class="example-btn" data-text="Multiple workstations show unusual CPU spikes and outbound connections to unknown IPs.">
+            <span class="btn-icon">☣</span>
+            <span>MALWARE DETECTION</span>
+          </button>
+          <button class="example-btn" data-text="The public site is receiving tens of thousands of requests per second from many regions, causing slowdown.">
+            <span class="btn-icon">⚠</span>
+            <span>DDoS ASSAULT</span>
+          </button>
+        </div>
+
+        <button id="analyzeBtn" class="analyze-btn">
+          <span class="btn-lines"></span>
+          <span id="analyzeLabel">INITIATE ANALYSIS</span>
+          <div id="spinner" class="spinner" style="display:none"></div>
+        </button>
+
+        <div id="errorMessage" class="error-message" style="display:none"></div>
+      </section>
+
+      <section id="resultsSection" class="results-section section" style="display:none">
+        <div class="section-header">
+          <h2><span class="bracket">&gt;</span> ANALYSIS REPORT</h2>
+          <div class="header-line"></div>
+        </div>
+
+        <div class="results-toolbar">
+          <div class="toolbar-info">
+            <span class="info-item" id="caseId">CASE: ---</span>
+            <span class="info-divider">/</span>
+            <span class="info-item" id="timestamp">TIME: --:--:--</span>
+          </div>
+          <button id="downloadBtn" class="download-btn" disabled>
+            <span class="btn-icon">↓</span>
+            EXPORT DATA
+          </button>
+        </div>
+
+        <div class="analysis-card">
+          <div class="card-grid">
+            <div class="info-box">
+              <div class="box-corner tl"></div>
+              <div class="box-corner tr"></div>
+              <div class="box-corner bl"></div>
+              <div class="box-corner br"></div>
+              <label>THREAT TYPE</label>
+              <div class="threat-type" id="threatType">SCANNING...</div>
+            </div>
+            
+            <div class="info-box">
+              <div class="box-corner tl"></div>
+              <div class="box-corner tr"></div>
+              <div class="box-corner bl"></div>
+              <div class="box-corner br"></div>
+              <label>SEVERITY</label>
+              <div id="severity" class="severity-badge severity-unknown">EVALUATING</div>
+            </div>
+            
+            <div class="info-box">
+              <div class="box-corner tl"></div>
+              <div class="box-corner tr"></div>
+              <div class="box-corner bl"></div>
+              <div class="box-corner br"></div>
+              <label>TOKENS</label>
+              <div class="token-count" id="tokenUsage">0000</div>
+            </div>
+          </div>
+
+          <div class="analysis-content">
+            <h3>[ SCENARIO ]</h3>
+            <div class="content-box">
+              <p id="scenarioText" class="analysis-text">Awaiting threat data...</p>
+            </div>
+          </div>
+
+          <div class="analysis-content">
+            <h3>[ AI ANALYSIS ]</h3>
+            <div class="content-box">
+              <p id="analysisText" class="analysis-text">Deep learning analysis in progress...</p>
+            </div>
+          </div>
+
+          <div class="recommendations">
+            <h3>[ TACTICAL RECOMMENDATIONS ]</h3>
+            <ul id="recList" class="rec-list"></ul>
+          </div>
+
+          <div class="sources">
+            <h3>[ INTELLIGENCE SOURCES ]</h3>
+            <div class="content-box">
+              <p id="sourcesText" class="analysis-text">No sources referenced</p>
+            </div>
+          </div>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <script>
+    // Matrix rain effect
+    const canvas = document.getElementById('matrixCanvas');
+    const ctx = canvas.getContext('2d');
+    canvas.width = window.innerWidth;
+    canvas.height = window.innerHeight;
+    
+    const chars = '01アイウエオカキクケコサシスセソタチツテトナニヌネノハヒフヘホマミムメモヤユヨラリルレロワヲン';
+    const fontSize = 14;
+    const columns = canvas.width / fontSize;
+    const drops = [];
+    
+    for (let i = 0; i < columns; i++) {
+      drops[i] = Math.random() * -100;
+    }
+    
+    function drawMatrix() {
+      ctx.fillStyle = 'rgba(10, 14, 26, 0.05)';
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+      
+      ctx.font = fontSize + 'px monospace';
+      
+      for (let i = 0; i < drops.length; i++) {
+        const text = chars[Math.floor(Math.random() * chars.length)];
+        const gradient = ctx.createLinearGradient(0, drops[i] * fontSize - 20, 0, drops[i] * fontSize);
+        gradient.addColorStop(0, 'rgba(0, 255, 136, 0)');
+        gradient.addColorStop(1, 'rgba(0, 255, 136, 0.8)');
+        ctx.fillStyle = gradient;
+        ctx.fillText(text, i * fontSize, drops[i] * fontSize);
+        
+        if (drops[i] * fontSize > canvas.height && Math.random() > 0.975) {
+          drops[i] = 0;
+        }
+        drops[i]++;
+      }
+    }
+    
+    setInterval(drawMatrix, 50);
+    window.addEventListener('resize', () => {
+      canvas.width = window.innerWidth;
+      canvas.height = window.innerHeight;
+    });
+
+    // API Integration
+    const apiBase = 'http://localhost:8000/api';
+    const statusDot = document.getElementById('statusDot');
+    const statusText = document.getElementById('statusText');
+    const statusFill = document.getElementById('statusFill');
+    const scenarioInput = document.getElementById('scenarioInput');
+    const analyzeBtn = document.getElementById('analyzeBtn');
+    const analyzeLabel = document.getElementById('analyzeLabel');
+    const spinner = document.getElementById('spinner');
+    const errorMessage = document.getElementById('errorMessage');
+    const resultsSection = document.getElementById('resultsSection');
+    const downloadBtn = document.getElementById('downloadBtn');
+    const loadingBar = document.getElementById('loadingBar');
+    const caseIdEl = document.getElementById('caseId');
+    const timestampEl = document.getElementById('timestamp');
+    const threatTypeEl = document.getElementById('threatType');
+    const severityEl = document.getElementById('severity');
+    const tokenUsageEl = document.getElementById('tokenUsage');
+    const scenarioTextEl = document.getElementById('scenarioText');
+    const analysisTextEl = document.getElementById('analysisText');
+    const recListEl = document.getElementById('recList');
+    const sourcesTextEl = document.getElementById('sourcesText');
+
+    let latestAnalysis = null;
+
+    // Particle system
+    function createParticle(x, y) {
+      const particle = document.createElement('div');
+      particle.className = 'particle';
+      particle.style.left = x + 'px';
+      particle.style.top = y + 'px';
+      particle.style.setProperty('--drift', (Math.random() - 0.5) * 100 + 'px');
+      document.body.appendChild(particle);
+      setTimeout(() => particle.remove(), 3000);
+    }
+
+    // Random particle generation
+    setInterval(() => {
+      if (Math.random() > 0.95) {
+        createParticle(
+          Math.random() * window.innerWidth,
+          Math.random() * window.innerHeight
+        );
+      }
+    }, 200);
+
+    // Glitch effect on title
+    const title = document.querySelector('.header-content h1');
+    setInterval(() => {
+      if (Math.random() > 0.97) {
+        title.style.transform = `translate(${Math.random() * 4 - 2}px, ${Math.random() * 4 - 2}px)`;
+        setTimeout(() => {
+          title.style.transform = 'translate(0, 0)';
+        }, 50);
+      }
+    }, 100);
+
+    // Interactive input feedback
+    scenarioInput.addEventListener('input', () => {
+      const rect = scenarioInput.getBoundingClientRect();
+      if (Math.random() > 0.8) {
+        createParticle(
+          rect.left + Math.random() * rect.width,
+          rect.top + Math.random() * rect.height
+        );
+      }
+    });
+
+    // Button click effects
+    document.querySelectorAll('button').forEach(btn => {
+      btn.addEventListener('click', function(e) {
+        const rect = this.getBoundingClientRect();
+        for (let i = 0; i < 8; i++) {
+          setTimeout(() => {
+            createParticle(
+              rect.left + rect.width / 2 + (Math.random() - 0.5) * 50,
+              rect.top + rect.height / 2 + (Math.random() - 0.5) * 50
+            );
+          }, i * 30);
+        }
+      });
+    });
+
+    // Typing sound effect simulation
+    let typingTimer;
+    scenarioInput.addEventListener('keydown', () => {
+      scenarioInput.style.borderColor = '#00ff88';
+      scenarioInput.style.boxShadow = '0 0 25px rgba(0, 255, 136, 0.4)';
+      clearTimeout(typingTimer);
+      typingTimer = setTimeout(() => {
+        scenarioInput.style.borderColor = 'rgba(0, 255, 136, 0.3)';
+        scenarioInput.style.boxShadow = 'none';
+      }, 300);
+    });
+
+    function setLoading(isLoading) {
+      analyzeBtn.disabled = isLoading;
+      spinner.style.display = isLoading ? 'inline-block' : 'none';
+      analyzeLabel.textContent = isLoading ? 'PROCESSING...' : 'INITIATE ANALYSIS';
+      loadingBar.style.width = isLoading ? '100%' : '0';
+    }
+
+    function setStatus(state, detail = '') {
+      statusDot.classList.remove('online', 'offline');
+      statusDot.classList.add(state === 'online' ? 'online' : 'offline');
+      statusText.textContent = detail || (state === 'online' ? 'SYSTEMS OPERATIONAL' : 'OFFLINE');
+      statusFill.style.width = state === 'online' ? '100%' : '0%';
+    }
+
+    async function fetchHealth() {
+      try {
+        const res = await fetch(`${apiBase}/health`);
+        const data = await res.json();
+        const healthy = data.status === 'healthy' || data.status === 'degraded';
+        setStatus(healthy ? 'online' : 'offline', `ENGINE: ${data.ollama || 'UNKNOWN'} | DB: ${data.vector_db || 'UNKNOWN'}`);
+      } catch (err) {
+        setStatus('offline', 'CONNECTION FAILED');
+      }
+    }
+
+    function severityClass(level) {
+      const map = { low: 'severity-low', medium: 'severity-medium', high: 'severity-high' };
+      return map[level.toLowerCase()] || 'severity-unknown';
+    }
+
+    function typeWriter(element, text, speed = 15) {
+      element.textContent = '';
+      let i = 0;
+      function type() {
+        if (i < text.length) {
+          element.textContent += text.charAt(i);
+          i++;
+          setTimeout(type, speed);
+        }
+      }
+      type();
+    }
+
+    function renderAnalysis(analysis) {
+      latestAnalysis = analysis;
+      downloadBtn.disabled = false;
+      resultsSection.style.display = 'block';
+      
+      setTimeout(() => {
+        resultsSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      }, 100);
+
+      caseIdEl.textContent = `CASE: ${analysis.case_id}`;
+      timestampEl.textContent = `TIME: ${analysis.timestamp}`;
+      
+      typeWriter(threatTypeEl, analysis.threat_type || 'UNKNOWN', 30);
+      severityEl.textContent = (analysis.severity || 'UNKNOWN').toUpperCase();
+      severityEl.className = 'severity-badge ' + severityClass(analysis.severity || 'unknown');
+      typeWriter(tokenUsageEl, String(analysis.token_usage || 0).padStart(4, '0'), 50);
+      
+      setTimeout(() => typeWriter(scenarioTextEl, analysis.scenario || '', 15), 300);
+      setTimeout(() => typeWriter(analysisTextEl, analysis.analysis || '', 15), 800);
+
+      recListEl.innerHTML = '';
+      (analysis.recommendations || []).forEach((rec, idx) => {
+        setTimeout(() => {
+          const li = document.createElement('li');
+          li.innerHTML = `
+            <div class="rec-number">${String(idx + 1).padStart(2, '0')}</div>
+            <span>${rec}</span>
+          `;
+          li.style.opacity = '0';
+          li.style.transform = 'translateX(-20px)';
+          recListEl.appendChild(li);
+          
+          setTimeout(() => {
+            li.style.transition = 'all 0.5s';
+            li.style.opacity = '1';
+            li.style.transform = 'translateX(0)';
+          }, 50);
+        }, idx * 200 + 1200);
+      });
+
+      const sources = analysis.context_sources || [];
+      setTimeout(() => {
+        sourcesTextEl.textContent = sources.length ? sources.join(', ') : 'NO SOURCES REFERENCED';
+      }, 1500);
+    }
+
+    async function analyze() {
+      const scenario = scenarioInput.value.trim();
+      if (!scenario) {
+        errorMessage.textContent = '[ ERROR ] SCENARIO INPUT REQUIRED';
+        errorMessage.style.display = 'block';
+        setTimeout(() => { errorMessage.style.display = 'none'; }, 4000);
+        return;
+      }
+      
+      errorMessage.style.display = 'none';
+      setLoading(true);
+      
+      try {
+        const res = await fetch(`${apiBase}/analyze`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ scenario })
+        });
+        
+        if (!res.ok) throw new Error(`API ERROR ${res.status}`);
+        const data = await res.json();
+        renderAnalysis(data);
+      } catch (err) {
+        errorMessage.textContent = `[ ERROR ] ${err.message || 'ANALYSIS FAILED'}`;
+        errorMessage.style.display = 'block';
+      } finally {
+        setLoading(false);
+      }
+    }
+
+    async function downloadPdf() {
+      if (!latestAnalysis) return;
+      try {
+        const res = await fetch(`${apiBase}/generate-report`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(latestAnalysis)
+        });
+        if (!res.ok) throw new Error('DOWNLOAD FAILED');
+        const blob = await res.blob();
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `cybersentinel_${latestAnalysis.case_id}.pdf`;
+        a.click();
+        URL.revokeObjectURL(url);
+      } catch (err) {
+        alert('ERROR: ' + (err.message || 'DOWNLOAD FAILED'));
+      }
+    }
+
+    document.querySelectorAll('.example-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        scenarioInput.value = btn.dataset.text;
+        scenarioInput.focus();
+      });
+    });
+
+    analyzeBtn.addEventListener('click', analyze);
+    downloadBtn.addEventListener('click', downloadPdf);
+    window.addEventListener('load', fetchHealth);
+    setInterval(fetchHealth, 30000);
+  </script>
+</body>
+</html>
